@@ -1,0 +1,13 @@
+{
+  "name": "websocket-to-do-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "nodemon": "^2.0.22"
+  },
+  "scripts": {
+    "start": "nodemon server.js"
+  }
+}

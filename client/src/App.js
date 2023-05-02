@@ -11,24 +11,31 @@ const App = () => {
     const socket = io("http://localhost:8000");
     setSocket(socket);
     socket.on("updateData", (tasks) => {
-      updateTasks(tasks);
+      setTasks(tasks);
     });
 
     socket.on("removeTask", (id) => {
       removeTask(id);
     });
+
     socket.on("addTask", (task) => {
-      addTask(task);
+      setTasks((tasks) => [...tasks, task]);
     });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const addTask = (task) => {
-    setTasks((tasks) => [...tasks, task]);
+    const newTasks = [...tasks, task];
+    setTasks(newTasks);
+    if (socket) {
+      socket.emit("addTask", task, (addedTask) => {
+        setTasks(newTasks.map((task) => (task.id === addedTask.id ? addedTask : task)));
+      });
+    }
     setNewTask("");
-  };
-
-  const updateTasks = (tasksData) => {
-    setTasks(tasksData);
   };
 
   const removeTask = (taskId, isLocal) => {
@@ -40,10 +47,12 @@ const App = () => {
 
   const submitForm = (e) => {
     e.preventDefault();
-    const task = { name: newTask, id: shortid.generate() };
-    addTask(task);
-    socket.emit("addTask", task);
+    if (newTask.trim() !== "") {
+      const task = { name: newTask, id: shortid.generate() };
+      addTask(task);
+    }
   };
+
   return (
     <div className="App">
       <header>
@@ -74,6 +83,7 @@ const App = () => {
             id="task-name"
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
+            required
           />
           <button className="btn" type="submit">
             Add
